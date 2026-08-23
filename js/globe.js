@@ -173,9 +173,12 @@ class Globe {
   }
 
   _rebuildOrientation() {
+    // Orden importante: primero yaw (horizontal), luego pitch (vertical) —
+    // así el "norte" del globo nunca se inclina, para cualquier ángulo.
+    // Ver el comentario de yawPitchToFace en geo-utils.js para el porqué.
     const qYaw = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), this.yaw);
     const qPitch = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), this.pitch);
-    this.globeGroup.quaternion.copy(qYaw).multiply(qPitch);
+    this.globeGroup.quaternion.copy(qPitch).multiply(qYaw);
   }
 
   _resize() {
