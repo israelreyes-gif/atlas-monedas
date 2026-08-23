@@ -1,28 +1,28 @@
 /**
  * markers.js
- * Dibuja los puntos de continente/país sobre el globo, con su nombre
- * flotando encima, y gestiona la navegación al tocarlos. No sabe nada de
- * Three.js "en crudo" más allá de lo que Globe ya expone (camera,
- * globeGroup) — así que si el día de mañana cambiamos el motor de render,
- * solo hay que tocar globe.js.
+ * Dibuja los puntos de continente/país/ciudad sobre el globo, con su
+ * nombre flotando encima, y gestiona la navegación al tocarlos.
  *
  * Uso:
- *   const worldData = await loadWorldData('data/world.json');
- *   const markers = new MarkerLayer(globe, worldData);
+ *   const collection = new Collection();
+ *   const panel = new CityPanel(document.getElementById('panel'), collection);
+ *   const markers = new MarkerLayer(globe, worldData, collection, panel);
  *   markers.mount();
  */
 class MarkerLayer {
-  constructor(globe, worldData) {
+  constructor(globe, worldData, collection, panel) {
     this.globe = globe;
     this.data = worldData; // { contKey: { name, lat, lon, countries: { isoKey: {...} } } }
-    this.path = [];        // [] = mundo · [contKey] = dentro de un continente
+    this.collection = collection;
+    this.panel = panel;
+    this.path = [];        // [] mundo · [contKey] país · [contKey, isoKey] ciudad
     this.markers = [];      // { mesh, label, kind, key, name }
     this.labelsLayer = null;
     this.raycaster = new THREE.Raycaster();
 
-    // Punto de extensión: el siguiente paso (ciudades/D1) puede engancharse
-    // aquí para reaccionar cuando se toca un país, sin tocar este archivo.
-    this.onCountrySelected = null;
+    if (this.panel) {
+      this.panel.onToggle = () => this._renderLevel(); // repinta el color del punto tocado
+    }
   }
 
   mount() {
@@ -38,6 +38,7 @@ class MarkerLayer {
     this.path = [];
     this._renderLevel();
     this._updateBreadcrumb();
+    if (this.panel) this.panel.close();
   }
 
   // ---------------------------------------------------------------------
@@ -64,14 +65,15 @@ class MarkerLayer {
     this.markers = [];
   }
 
-  _addMarker(lat, lon, name, kind, key) {
+  _addMarker(lat, lon, name, kind, key, owned) {
     const r = 2.02;
     const pos = latLonToVec3(lat, lon, r);
-    const size = kind === 'continent' ? 0.05 : 0.04;
+    const size = kind === 'continent' ? 0.05 : (kind === 'country' ? 0.04 : 0.035);
+    const color = kind === 'city' ? (owned ? 0xC9A24B : 0x4A5568) : 0xE4C476;
 
     const mesh = new THREE.Mesh(
       new THREE.SphereGeometry(size, 16, 16),
-      new THREE.MeshBasicMaterial({ color: 0xE4C476 })
+      new THREE.MeshBasicMaterial({ color })
     );
     mesh.position.copy(pos);
     mesh.userData = { kind, key, name };
@@ -92,6 +94,14 @@ class MarkerLayer {
     } else if (this.path.length === 1) {
       const cont = this.data[this.path[0]];
       Object.entries(cont.countries).forEach(([key, c]) => this._addMarker(c.lat, c.lon, c.name, 'country', key));
+    } else if (this.path.length === 2) {
+      const [contKey, isoKey] = this.path;
+      const country = this.data[contKey].countries[isoKey];
+      country.cities.forEach(c => {
+        const [name, lat, lon] = c;
+        const owned = this.collection ? this.collection.isOwned(contKey, isoKey, name) : false;
+        this._addMarker(lat, lon, name, 'city', name, owned);
+      });
     }
   }
 
@@ -109,8 +119,17 @@ class MarkerLayer {
       this.path = [key];
       this._renderLevel();
       this._updateBreadcrumb();
+      if (this.panel) this.panel.close();
     } else if (kind === 'country') {
-      if (this.onCountrySelected) this.onCountrySelected(this.path[0], key);
+      this.path = [this.path[0], key];
+      this._renderLevel();
+      this._updateBreadcrumb();
+      if (this.panel) this.panel.close();
+    } else if (kind === 'city') {
+      const [contKey, isoKey] = this.path;
+      if (this.panel) {
+        this.panel.open(contKey, isoKey, this.data[contKey].name, this.data[contKey].countries[isoKey].name, key);
+      }
     }
   }
 
@@ -121,7 +140,10 @@ class MarkerLayer {
       el.style.display = 'none';
     } else {
       el.style.display = 'flex';
-      el.textContent = '‹ Mundo · ' + this.data[this.path[0]].name;
+      const cont = this.data[this.path[0]];
+      let text = '‹ Mundo · ' + cont.name;
+      if (this.path[1]) text += ' · ' + cont.countries[this.path[1]].name;
+      el.textContent = text;
     }
   }
 
