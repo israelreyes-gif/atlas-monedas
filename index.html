@@ -19,12 +19,19 @@
     <button id="zoom-in" aria-label="Acercar">+</button>
     <button id="zoom-out" aria-label="Alejar">–</button>
   </div>
+
+  <div id="panel">
+    <button class="close" aria-label="Cerrar">&times;</button>
+    <div id="panel-body"></div>
+  </div>
 </div>
 
 <!-- Módulos, en orden de dependencia. Nada de build step: son <script> normales. -->
 <script src="js/geo-utils.js"></script>
 <script src="js/globe.js"></script>
 <script src="js/world-data.js"></script>
+<script src="js/collection.js"></script>
+<script src="js/city-panel.js"></script>
 <script src="js/markers.js"></script>
 <script src="js/main.js"></script>
 </body>
