@@ -14,6 +14,7 @@ class Globe {
   constructor(canvas) {
     this.canvas = canvas;
     this.borders = null;
+    this.visible = true;
 
     // Orientación: dos ángulos independientes y sin límite (nunca se
     // acumulan por multiplicación repetida, se reconstruyen cada frame),
@@ -81,6 +82,12 @@ class Globe {
    *  (usado por markers.js para saber cuándo se ha tocado un marcador). */
   onTap(callback) {
     this._onCityClick = callback;
+  }
+
+  /** Oculta/muestra el lienzo del globo (lo usa main.js al entrar/salir del mapa de país). */
+  setVisible(v) {
+    this.visible = v;
+    this.canvas.style.display = v ? 'block' : 'none';
   }
 
   // ---------------------------------------------------------------------
@@ -178,6 +185,7 @@ class Globe {
 
   _animate() {
     this._raf = requestAnimationFrame(() => this._animate());
+    if (!this.visible) return; // ahorra GPU mientras se ve el mapa plano de país
 
     if (this.flying) {
       this.yaw += (this.targetYaw - this.yaw) * 0.08;
