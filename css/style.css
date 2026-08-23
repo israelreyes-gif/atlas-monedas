@@ -45,16 +45,6 @@ html,body{
   background:rgba(13,20,32,.6); padding:6px 14px; border-radius:999px;
 }
 
-#zoom-controls{
-  position:absolute; bottom:calc(24px + env(safe-area-inset-bottom)); left:28px;
-  display:flex; flex-direction:column; gap:6px;
-}
-#zoom-controls button{
-  width:34px; height:34px; border-radius:9px; border:1px solid var(--border);
-  background:rgba(13,20,32,.75); color:var(--cream); font-size:16px; cursor:pointer;
-}
-#zoom-controls button:hover{ background:var(--panel-2); }
-
 #breadcrumb{
   position:absolute; top:calc(22px + env(safe-area-inset-top)); left:28px; z-index:5; display:none;
   font-family:'Fraunces',serif; font-size:15px; color:var(--cream);
