@@ -31,6 +31,10 @@ html,body{
 }
 #globe-canvas:active{ cursor:grabbing; }
 
+#map-canvas{
+  position:absolute; inset:0; touch-action:none; display:none;
+}
+
 /* env(safe-area-inset-*) mantiene todo dentro del área visible real en
    móviles con notch/isla dinámica arriba y barra de gestos abajo — sin
    esto, estos elementos quedaban tapados por el propio hardware. */
