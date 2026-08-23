@@ -43,6 +43,16 @@ class MarkerLayer {
     this._updateBreadcrumb();
   }
 
+  /** Oculta/muestra la capa de etiquetas HTML (los nombres flotantes). El
+   *  globo 3D se puede tapar con display:none en su <canvas>, pero estas
+   *  etiquetas viven en un <div> aparte y hay que ocultarlas explícitamente. */
+  hideLabels() {
+    if (this.labelsLayer) this.labelsLayer.style.display = 'none';
+  }
+  showLabels() {
+    if (this.labelsLayer) this.labelsLayer.style.display = 'block';
+  }
+
   // ---------------------------------------------------------------------
   // Internals
   // ---------------------------------------------------------------------
