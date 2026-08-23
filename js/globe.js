@@ -77,6 +77,12 @@ class Globe {
     this.targetFov = 10;
   }
 
+  /** Registra un callback que se llama cuando el usuario toca la esfera sin arrastrar
+   *  (usado por markers.js para saber cuándo se ha tocado un marcador). */
+  onTap(callback) {
+    this._onCityClick = callback;
+  }
+
   // ---------------------------------------------------------------------
   // Internals
   // ---------------------------------------------------------------------
