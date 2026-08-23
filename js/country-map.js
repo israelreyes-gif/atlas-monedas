@@ -128,7 +128,12 @@ class CountryMap {
     }
 
     this.points = [];
-    const manyCities = this.state.cities.length > 45;
+    // Los puntos siempre se dibujan todos. Las etiquetas se van colocando
+    // por orden (las ciudades ya vienen ordenadas por población), y una
+    // etiqueta solo se dibuja si no se solapa con ninguna ya colocada —
+    // así nunca hay amontonamiento, y al hacer zoom aparecen más porque
+    // hay más sitio libre entre los puntos.
+    const placedLabelBoxes = [];
     ctx.font = "13px 'Fraunces', serif";
     this.state.cities.forEach(c => {
       const [name, lat, lon] = c;
@@ -142,10 +147,18 @@ class CountryMap {
         ctx.strokeStyle = 'rgba(201,162,75,0.6)'; ctx.lineWidth = 2;
         ctx.beginPath(); ctx.arc(x, y, 9, 0, Math.PI * 2); ctx.stroke();
       }
-      if (!manyCities || this.state.scale > 2.2) {
+
+      const textW = ctx.measureText(name).width;
+      const box = { x: x + 9, y: y - 10, w: textW + 4, h: 16 };
+      const overlaps = placedLabelBoxes.some(b =>
+        box.x < b.x + b.w && box.x + box.w > b.x && box.y < b.y + b.h && box.y + box.h > b.y
+      );
+      if (!overlaps) {
         ctx.fillStyle = '#EDE6D6';
         ctx.fillText(name, x + 9, y + 4);
+        placedLabelBoxes.push(box);
       }
+
       this.points.push({ x, y, name });
     });
   }
