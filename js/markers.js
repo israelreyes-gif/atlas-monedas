@@ -1,33 +1,24 @@
 /**
  * markers.js
- * Dibuja los puntos de continente/país/ciudad sobre el globo, con su
- * nombre flotando encima, y gestiona la navegación al tocarlos.
+ * Dibuja los puntos de continente/país sobre el globo, con su nombre
+ * flotando encima, y gestiona la navegación al tocarlos. Al tocar un país
+ * ya no dibuja ciudades aquí — avisa hacia fuera (onCountrySelected) y es
+ * main.js quien decide mostrar el mapa plano de ese país (country-map.js).
  *
  * Cada marcador tiene DOS esferas: una pequeña visible (el punto que se
- * ve) y otra más grande e invisible (contra la que se comprueba el toque).
- * Sin esto, acertar un punto de 4mm en una pantalla táctil es más difícil
- * de lo que parece — el área de toque real necesita ser mayor que el punto.
- *
- * Uso:
- *   const collection = new Collection();
- *   const panel = new CityPanel(document.getElementById('panel'), collection);
- *   const markers = new MarkerLayer(globe, worldData, collection, panel);
- *   markers.mount();
+ * ve) y otra más grande e invisible (contra la que se comprueba el toque),
+ * para que sea fácil acertar con el dedo.
  */
 class MarkerLayer {
-  constructor(globe, worldData, collection, panel) {
+  constructor(globe, worldData) {
     this.globe = globe;
     this.data = worldData; // { contKey: { name, lat, lon, countries: { isoKey: {...} } } }
-    this.collection = collection;
-    this.panel = panel;
-    this.path = [];        // [] mundo · [contKey] país · [contKey, isoKey] ciudad
+    this.path = [];        // [] mundo · [contKey] dentro de un continente
     this.markers = [];      // { visMesh, hitMesh, label, kind, key, name }
     this.labelsLayer = null;
     this.raycaster = new THREE.Raycaster();
 
-    if (this.panel) {
-      this.panel.onToggle = () => this._renderLevel(); // repinta el color del punto tocado
-    }
+    this.onCountrySelected = null; // (contKey, isoKey) => {}
   }
 
   mount() {
@@ -43,7 +34,13 @@ class MarkerLayer {
     this.path = [];
     this._renderLevel();
     this._updateBreadcrumb();
-    if (this.panel) this.panel.close();
+  }
+
+  /** Vuelve al nivel "país" de un continente concreto (usado al salir del mapa plano). */
+  goToContinent(contKey) {
+    this.path = [contKey];
+    this._renderLevel();
+    this._updateBreadcrumb();
   }
 
   // ---------------------------------------------------------------------
@@ -71,16 +68,15 @@ class MarkerLayer {
     this.markers = [];
   }
 
-  _addMarker(lat, lon, name, kind, key, owned) {
+  _addMarker(lat, lon, name, kind, key) {
     const r = 2.02;
     const pos = latLonToVec3(lat, lon, r);
-    const visSize = kind === 'continent' ? 0.05 : (kind === 'country' ? 0.04 : 0.035);
-    const hitSize = visSize * 2.6; // área de toque bastante más generosa que el punto visible
-    const color = kind === 'city' ? (owned ? 0xC9A24B : 0x4A5568) : 0xE4C476;
+    const visSize = kind === 'continent' ? 0.05 : 0.04;
+    const hitSize = visSize * 2.6;
 
     const visMesh = new THREE.Mesh(
       new THREE.SphereGeometry(visSize, 16, 16),
-      new THREE.MeshBasicMaterial({ color })
+      new THREE.MeshBasicMaterial({ color: 0xE4C476 })
     );
     visMesh.position.copy(pos);
     this.globe.globeGroup.add(visMesh);
@@ -108,14 +104,6 @@ class MarkerLayer {
     } else if (this.path.length === 1) {
       const cont = this.data[this.path[0]];
       Object.entries(cont.countries).forEach(([key, c]) => this._addMarker(c.lat, c.lon, c.name, 'country', key));
-    } else if (this.path.length === 2) {
-      const [contKey, isoKey] = this.path;
-      const country = this.data[contKey].countries[isoKey];
-      country.cities.forEach(c => {
-        const [name, lat, lon] = c;
-        const owned = this.collection ? this.collection.isOwned(contKey, isoKey, name) : false;
-        this._addMarker(lat, lon, name, 'city', name, owned);
-      });
     }
   }
 
@@ -133,17 +121,8 @@ class MarkerLayer {
       this.path = [key];
       this._renderLevel();
       this._updateBreadcrumb();
-      if (this.panel) this.panel.close();
     } else if (kind === 'country') {
-      this.path = [this.path[0], key];
-      this._renderLevel();
-      this._updateBreadcrumb();
-      if (this.panel) this.panel.close();
-    } else if (kind === 'city') {
-      const [contKey, isoKey] = this.path;
-      if (this.panel) {
-        this.panel.open(contKey, isoKey, this.data[contKey].name, this.data[contKey].countries[isoKey].name, key);
-      }
+      if (this.onCountrySelected) this.onCountrySelected(this.path[0], key);
     }
   }
 
@@ -154,10 +133,7 @@ class MarkerLayer {
       el.style.display = 'none';
     } else {
       el.style.display = 'flex';
-      const cont = this.data[this.path[0]];
-      let text = '‹ Mundo · ' + cont.name;
-      if (this.path[1]) text += ' · ' + cont.countries[this.path[1]].name;
-      el.textContent = text;
+      el.textContent = '‹ Mundo · ' + this.data[this.path[0]].name;
     }
   }
 
