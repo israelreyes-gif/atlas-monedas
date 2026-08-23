@@ -3,6 +3,11 @@
  * Dibuja los puntos de continente/país/ciudad sobre el globo, con su
  * nombre flotando encima, y gestiona la navegación al tocarlos.
  *
+ * Cada marcador tiene DOS esferas: una pequeña visible (el punto que se
+ * ve) y otra más grande e invisible (contra la que se comprueba el toque).
+ * Sin esto, acertar un punto de 4mm en una pantalla táctil es más difícil
+ * de lo que parece — el área de toque real necesita ser mayor que el punto.
+ *
  * Uso:
  *   const collection = new Collection();
  *   const panel = new CityPanel(document.getElementById('panel'), collection);
@@ -16,7 +21,7 @@ class MarkerLayer {
     this.collection = collection;
     this.panel = panel;
     this.path = [];        // [] mundo · [contKey] país · [contKey, isoKey] ciudad
-    this.markers = [];      // { mesh, label, kind, key, name }
+    this.markers = [];      // { visMesh, hitMesh, label, kind, key, name }
     this.labelsLayer = null;
     this.raycaster = new THREE.Raycaster();
 
@@ -59,7 +64,8 @@ class MarkerLayer {
 
   _clearMarkers() {
     this.markers.forEach(m => {
-      this.globe.globeGroup.remove(m.mesh);
+      this.globe.globeGroup.remove(m.visMesh);
+      this.globe.globeGroup.remove(m.hitMesh);
       m.label.remove();
     });
     this.markers = [];
@@ -68,23 +74,31 @@ class MarkerLayer {
   _addMarker(lat, lon, name, kind, key, owned) {
     const r = 2.02;
     const pos = latLonToVec3(lat, lon, r);
-    const size = kind === 'continent' ? 0.05 : (kind === 'country' ? 0.04 : 0.035);
+    const visSize = kind === 'continent' ? 0.05 : (kind === 'country' ? 0.04 : 0.035);
+    const hitSize = visSize * 2.6; // área de toque bastante más generosa que el punto visible
     const color = kind === 'city' ? (owned ? 0xC9A24B : 0x4A5568) : 0xE4C476;
 
-    const mesh = new THREE.Mesh(
-      new THREE.SphereGeometry(size, 16, 16),
+    const visMesh = new THREE.Mesh(
+      new THREE.SphereGeometry(visSize, 16, 16),
       new THREE.MeshBasicMaterial({ color })
     );
-    mesh.position.copy(pos);
-    mesh.userData = { kind, key, name };
-    this.globe.globeGroup.add(mesh);
+    visMesh.position.copy(pos);
+    this.globe.globeGroup.add(visMesh);
+
+    const hitMesh = new THREE.Mesh(
+      new THREE.SphereGeometry(hitSize, 8, 8),
+      new THREE.MeshBasicMaterial({ visible: false })
+    );
+    hitMesh.position.copy(pos);
+    hitMesh.userData = { kind, key, name };
+    this.globe.globeGroup.add(hitMesh);
 
     const label = document.createElement('div');
     label.className = 'marker-label';
     label.textContent = name;
     this.labelsLayer.appendChild(label);
 
-    this.markers.push({ mesh, label, kind, key, name });
+    this.markers.push({ visMesh, hitMesh, label, kind, key, name });
   }
 
   _renderLevel() {
@@ -111,7 +125,7 @@ class MarkerLayer {
       -(e.clientY / window.innerHeight) * 2 + 1
     );
     this.raycaster.setFromCamera(mouse, this.globe.camera);
-    const hits = this.raycaster.intersectObjects(this.markers.map(m => m.mesh));
+    const hits = this.raycaster.intersectObjects(this.markers.map(m => m.hitMesh));
     if (!hits.length) return;
 
     const { kind, key } = hits[0].object.userData;
@@ -153,7 +167,7 @@ class MarkerLayer {
     const camDir = this.globe.camera.position.clone().normalize();
 
     this.markers.forEach(m => {
-      m.mesh.getWorldPosition(worldPos);
+      m.visMesh.getWorldPosition(worldPos);
       const p = worldPos.clone().project(this.globe.camera);
       const x = (p.x * 0.5 + 0.5) * window.innerWidth;
       const y = (-p.y * 0.5 + 0.5) * window.innerHeight;
