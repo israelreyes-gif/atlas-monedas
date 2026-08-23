@@ -1,7 +1,8 @@
 /**
  * main.js
  * Punto de entrada. Conecta todas las piezas: al tocar un país, esconde
- * el globo y muestra el mapa plano de ese país; al volver, al revés.
+ * el globo (lienzo 3D + sus etiquetas) y muestra el mapa plano de ese
+ * país; al volver, al revés.
  */
 (async function () {
   const globeCanvas = document.getElementById('globe-canvas');
@@ -26,6 +27,7 @@
   markers.onCountrySelected = (contKey, isoKey) => {
     currentView = 'map';
     globe.setVisible(false);
+    markers.hideLabels();
     countryMap.show(contKey, isoKey);
   };
 
@@ -37,20 +39,12 @@
       const contKey = countryMap.state.contKey;
       countryMap.hide();
       globe.setVisible(true);
+      markers.showLabels();
       currentView = 'globe';
       markers.goToContinent(contKey);
     } else {
       markers.goToWorld();
     }
-  });
-
-  document.getElementById('zoom-in').addEventListener('click', () => {
-    if (currentView === 'map') countryMap.zoomBy(1.35);
-    else globe.zoomBy(-4);
-  });
-  document.getElementById('zoom-out').addEventListener('click', () => {
-    if (currentView === 'map') countryMap.zoomBy(1 / 1.35);
-    else globe.zoomBy(4);
   });
 
   // Se dejan accesibles en consola por comodidad mientras probamos.
