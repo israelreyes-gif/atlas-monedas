@@ -13,6 +13,16 @@
   document.getElementById('zoom-in').addEventListener('click', () => globe.zoomBy(-4));
   document.getElementById('zoom-out').addEventListener('click', () => globe.zoomBy(4));
 
-  // Se deja accesible en consola por comodidad mientras probamos.
+  const worldData = await loadWorldData('data/world.json');
+  const markers = new MarkerLayer(globe, worldData);
+  markers.mount();
+
+  // Próximo paso: al tocar un país entraremos en sus ciudades.
+  markers.onCountrySelected = (contKey, isoKey) => {
+    console.log('País seleccionado:', contKey, isoKey);
+  };
+
+  // Se dejan accesibles en consola por comodidad mientras probamos.
   window.__globe = globe;
+  window.__markers = markers;
 })();
