@@ -19,8 +19,11 @@ class Globe {
     // Orientación: dos ángulos independientes y sin límite (nunca se
     // acumulan por multiplicación repetida, se reconstruyen cada frame),
     // así se evita cualquier deriva y no hay zonas inalcanzables.
-    this.yaw = -0.4;
-    this.pitch = 0.15;
+    // Orientación inicial: calculada para que Madrid quede mirando a
+    // cámara al arrancar, en vez de un valor fijo puesto a ojo.
+    const initial = yawPitchToFace(latLonToVec3(40.4, -3.7, 1));
+    this.yaw = initial.yaw;
+    this.pitch = initial.pitch;
     this.targetYaw = this.yaw;
     this.targetPitch = this.pitch;
     this.flying = false;
