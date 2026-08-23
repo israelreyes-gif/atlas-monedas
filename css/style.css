@@ -1,0 +1,48 @@
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap');
+
+:root{
+  --bg:#0D1420;
+  --panel:#161F30;
+  --panel-2:#1D2A40;
+  --brass:#C9A24B;
+  --brass-bright:#E4C476;
+  --slate:#4A5568;
+  --cream:#EDE6D6;
+  --cream-dim:#9AA3B5;
+  --moss:#7A9471;
+  --border:#2A3650;
+}
+*{ box-sizing:border-box; }
+
+/* position:fixed + overscroll-behavior:none evita que iOS/Android "reboten" la página
+   entera durante un arrastre vertical largo — ese rebote es lo que puede competir con
+   el gesto de cerrar del visor que envuelve esta vista previa. */
+html,body{
+  margin:0; height:100%; width:100%; background:var(--bg); color:var(--cream);
+  font-family:'Inter',sans-serif; overflow:hidden;
+  position:fixed; overscroll-behavior:none; touch-action:none;
+  -webkit-user-select:none; user-select:none;
+}
+
+#app{ position:relative; width:100vw; height:100vh; overscroll-behavior:none; }
+
+#globe-canvas{
+  position:absolute; inset:0; touch-action:none; cursor:grab;
+}
+#globe-canvas:active{ cursor:grabbing; }
+
+#hint{
+  position:absolute; bottom:24px; left:50%; transform:translateX(-50%);
+  font-size:12px; color:var(--cream-dim); letter-spacing:.02em;
+  pointer-events:none; text-align:center;
+  background:rgba(13,20,32,.6); padding:6px 14px; border-radius:999px;
+}
+
+#zoom-controls{
+  position:absolute; bottom:24px; left:28px; display:flex; flex-direction:column; gap:6px;
+}
+#zoom-controls button{
+  width:34px; height:34px; border-radius:9px; border:1px solid var(--border);
+  background:rgba(13,20,32,.75); color:var(--cream); font-size:16px; cursor:pointer;
+}
+#zoom-controls button:hover{ background:var(--panel-2); }
