@@ -22,17 +22,20 @@ function latLonToVec3(lat, lon, r) {
 }
 
 /**
- * Dado un vector unitario local (salida de latLonToVec3 con r=1), calcula
- * los ángulos (yaw, pitch) que, aplicados como Ry(yaw) * Rx(pitch), traen
- * ese punto justo de cara a la cámara (0,0,1). Es la inversa de la rotación
- * que usa Globe para orientar la esfera — se usa para el futuro "volar hasta
- * esta ciudad" del buscador.
+ * Dado un vector unitario local, calcula (yaw, pitch) tales que, aplicando
+ * primero el giro horizontal y DESPUÉS el vertical (Rx(pitch) · Ry(yaw)),
+ * ese punto queda mirando a cámara (0,0,1). Este orden concreto es
+ * importante: aplicar el vertical antes que el horizontal inclina el
+ * "norte" del globo cuanto más lejos del ecuador esté el punto — con este
+ * orden, el polo norte se queda siempre recto en pantalla, para cualquier
+ * combinación de ángulos.
  */
 function yawPitchToFace(localUnitVec) {
   const { x, y, z } = localUnitVec;
-  const pitch = Math.atan2(y, z);
-  const r = Math.hypot(y, z);
-  const yaw = Math.atan2(-x, r);
+  const yaw = Math.atan2(-x, z);
+  const ux = x * Math.cos(yaw) + z * Math.sin(yaw); // ~0 por construcción
+  const uz = -x * Math.sin(yaw) + z * Math.cos(yaw);
+  const pitch = Math.atan2(y, uz);
   return { yaw, pitch };
 }
 
