@@ -24,6 +24,12 @@
 
   const countryMap = new CountryMap(mapCanvas, worldData, countryBorders, collection, panel);
 
+  const search = new SearchBox(
+    document.getElementById('search-input'),
+    document.getElementById('search-results'),
+    worldData
+  );
+
   let currentView = 'globe'; // 'globe' | 'map'
 
   markers.onCountrySelected = (contKey, isoKey) => {
@@ -31,6 +37,14 @@
     globe.setVisible(false);
     markers.hideLabels();
     countryMap.show(contKey, isoKey);
+  };
+
+  search.onSelect = (contKey, isoKey, cityName) => {
+    currentView = 'map';
+    globe.setVisible(false);
+    markers.hideLabels();
+    countryMap.show(contKey, isoKey);
+    panel.open(contKey, isoKey, worldData[contKey].name, worldData[contKey].countries[isoKey].name, cityName);
   };
 
   // El botón de "‹ Mundo · ..." hace de "volver": si estamos en el mapa de
