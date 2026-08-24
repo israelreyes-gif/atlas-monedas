@@ -1,0 +1,8 @@
+name = "atlas-monedas-api"
+main = "worker.js"
+compatibility_date = "2024-11-01"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "atlas-monedas-db"
+database_id = "257a592f-531c-43a9-97b0-fe1a6ab059b3"
