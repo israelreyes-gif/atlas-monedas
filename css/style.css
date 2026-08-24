@@ -62,8 +62,8 @@ html,body{
 }
 
 #search-wrap{
-  position:absolute; top:calc(22px + env(safe-area-inset-top)); left:50%; transform:translateX(-50%);
-  width:min(320px, calc(100vw - 160px)); z-index:5;
+  position:absolute; top:calc(70px + env(safe-area-inset-top)); left:50%; transform:translateX(-50%);
+  width:min(320px, calc(100vw - 56px)); z-index:5;
 }
 #search-input{
   width:100%; box-sizing:border-box;
