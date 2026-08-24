@@ -21,7 +21,7 @@ class CountryMap {
     this.onBack = null; // () => {}
 
     if (this.panel) {
-      this.panel.onToggle = () => this._draw(); // repinta el color del punto tocado
+      this.panel.onToggle = () => { this._draw(); this._updateCounter(); }; // repinta el punto y el contador
     }
 
     this._bindGestures();
@@ -40,6 +40,7 @@ class CountryMap {
     };
     this.canvas.style.display = 'block';
     this._updateBreadcrumb();
+    this._updateCounter();
     this._draw();
   }
 
@@ -47,6 +48,8 @@ class CountryMap {
     this.canvas.style.display = 'none';
     this.state = null;
     if (this.panel) this.panel.close();
+    const el = document.getElementById('counter');
+    if (el) el.style.display = 'none';
   }
 
   zoomBy(factor) {
@@ -168,6 +171,17 @@ class CountryMap {
     if (!el || !this.state) return;
     el.style.display = 'flex';
     el.textContent = '‹ Mundo · ' + this.state.contName + ' · ' + this.state.countryName;
+  }
+
+  _updateCounter() {
+    const el = document.getElementById('counter');
+    if (!el || !this.state || !this.collection) return;
+    let owned = 0;
+    this.state.cities.forEach(c => {
+      if (this.collection.isOwned(this.state.contKey, this.state.isoKey, c[0])) owned++;
+    });
+    el.textContent = owned + ' / ' + this.state.cities.length;
+    el.style.display = 'block';
   }
 
   _hitTest(x, y) {
