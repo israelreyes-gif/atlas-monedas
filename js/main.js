@@ -14,7 +14,9 @@
 
   const worldData = await loadWorldData('data/world.json');
   const countryBorders = await loadWorldData('data/country-borders.json');
-  const collection = new Collection();
+  const API_BASE_URL = 'https://atlas-monedas-api.pages.dev';
+  const collection = new Collection(API_BASE_URL);
+  await collection.load(); // carga lo ya guardado antes de dibujar nada que dependa de ello
   const panel = new CityPanel(document.getElementById('panel'), collection);
 
   const markers = new MarkerLayer(globe, worldData);
