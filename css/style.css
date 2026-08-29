@@ -138,3 +138,20 @@ html,body{
 }
 #toggle-btn.owned{ background:var(--moss); border-color:var(--moss); color:#0D1420; }
 #toggle-btn:hover{ filter:brightness(1.1); }
+
+#city-info{ margin-top:22px; }
+.city-photo{
+  width:100%; border-radius:10px; display:block; margin-bottom:14px;
+  max-height:180px; object-fit:cover; border:1px solid var(--border);
+}
+.city-extract{
+  font-size:13.5px; line-height:1.5; color:var(--cream-dim); margin:0 0 12px;
+}
+.city-wiki-link{
+  display:inline-block; font-size:12.5px; color:var(--brass-bright); text-decoration:none;
+}
+.city-wiki-link:hover{ text-decoration:underline; }
+.info-loading, .info-empty{
+  font-family:'IBM Plex Mono',monospace; font-size:12px; color:var(--cream-dim);
+  text-align:center; padding:10px 0;
+}
